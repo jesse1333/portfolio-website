@@ -775,6 +775,86 @@ button.pfp-wrap:focus-visible {
   max-width: 42rem;
 }
 
+.about-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, min(100%, 42rem)) minmax(22rem, 1fr);
+  gap: 2rem 2.5rem;
+  align-items: start;
+  width: 100%;
+  max-width: min(100%, 92rem);
+}
+
+.about-physics-aside {
+  min-width: 0;
+  position: relative;
+}
+
+.selection-physics-component {
+  width: 100%;
+}
+
+.selection-physics-component__frame {
+  position: relative;
+  width: 100%;
+  min-width: 22rem;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.18);
+  background: #14151f;
+}
+
+.selection-physics-component__hint {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: clamp(1rem, 4vw, 1.75rem);
+  text-align: center;
+  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: rgba(236, 236, 209, 0.22);
+  pointer-events: none;
+  user-select: none;
+}
+
+.selection-physics-component__mount {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: none;
+  line-height: 0;
+}
+
+.selection-physics-component__mount canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.selection-physics-component__mount canvas:active {
+  cursor: grabbing;
+}
+
+@media (max-width: 960px) {
+  .about-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-physics-aside {
+    justify-self: start;
+  }
+
+  .selection-physics-component__mount {
+    max-width: 100%;
+  }
+}
+
 .about-copy .about-lead {
   font-size: 1.1rem;
   line-height: 1.6;
@@ -787,6 +867,66 @@ button.pfp-wrap:focus-visible {
   margin: 0;
   opacity: 0.88;
 }
+
+.about-photo-scroller {
+  position: relative;
+  container-type: inline-size;
+  container-name: about-photo;
+  width: 100%;
+  max-width: min(100%, 33rem);
+  margin: 1.25rem 1rem 1.1rem;
+  border-radius: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  outline: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.about-photo-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.about-photo-scroller:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 3px;
+}
+
+.about-photo-scroller__track {
+  display: flex;
+  gap: 0;
+}
+
+.about-photo-scroller__slide {
+  flex: 0 0 100cqi;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+@supports not (width: 1cqi) {
+  .about-photo-scroller__slide {
+    flex: 0 0 100%;
+  }
+}
+
+.about-photo-scroller__slide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1600 / 1067;
+  object-fit: cover;
+  border-radius: 12px;
+  vertical-align: middle;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
 
 .about-tech-label {
   font-size: 0.85rem;

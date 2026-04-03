@@ -37,7 +37,7 @@ export default function Projects() {
 
   return (
     <section
-      id="featured-work"
+      id="projects"
       className="page projects page-viewport-min page-viewport-min--scroll-hint"
     >
       {/* Keep old anchor for navbar compatibility while moving to featured-work URLs. */}

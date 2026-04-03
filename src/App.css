@@ -821,6 +821,12 @@ button.pfp-wrap:focus-visible {
   user-select: none;
 }
 
+/* Block wrapper: parent is flex so hint text/spans flow as normal inline content, not flex items in a row */
+.selection-physics-component__hint-inner {
+  display: block;
+  max-width: min(100%, 22rem);
+}
+
 .selection-physics-component__mount {
   position: relative;
   z-index: 1;
@@ -868,13 +874,20 @@ button.pfp-wrap:focus-visible {
   opacity: 0.88;
 }
 
+.about-photo-scroller-wrap {
+  position: relative;
+  width: 100%;
+  max-width: min(100%, 33rem);
+  margin: 1.25rem 1rem 1.1rem;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
 .about-photo-scroller {
   position: relative;
   container-type: inline-size;
   container-name: about-photo;
   width: 100%;
-  max-width: min(100%, 33rem);
-  margin: 1.25rem 1rem 1.1rem;
   border-radius: 12px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -893,6 +906,81 @@ button.pfp-wrap:focus-visible {
 .about-photo-scroller:focus-visible {
   outline: 2px solid var(--link-color);
   outline-offset: 3px;
+}
+
+.about-photo-scroller__nav {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  min-width: 1.25rem;
+  padding: 0;
+  margin: 0;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.about-photo-scroller__nav--prev {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+}
+
+.about-photo-scroller__nav--next {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+}
+
+.about-photo-scroller__nav img {
+  display: block;
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
+  pointer-events: none;
+}
+
+.about-photo-scroller__nav--prev img {
+  transform: scaleX(-1);
+}
+
+.about-photo-scroller-wrap:hover .about-photo-scroller__nav,
+.about-photo-scroller-wrap:focus-within .about-photo-scroller__nav {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .about-photo-scroller__nav {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.about-photo-scroller__nav:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  outline: 2px solid var(--link-color);
+  outline-offset: -2px;
 }
 
 .about-photo-scroller__track {

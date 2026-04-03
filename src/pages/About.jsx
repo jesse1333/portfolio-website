@@ -1,7 +1,4 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import photo1 from '../assets/about/photography/DSCF0354.JPG';
-import photo2 from '../assets/about/photography/DSCF0365.JPG';
-import photo3 from '../assets/about/photography/DSCF0740.JPG';
 import uscVillage from '../assets/usc-village.png';
 import techAws from '../assets/tech-aws.svg';
 import techC from '../assets/tech-c.svg';
@@ -10,6 +7,7 @@ import techPostgresql from '../assets/tech-postgresql.svg';
 import techPython from '../assets/tech-python.svg';
 import techReact from '../assets/tech-react.svg';
 import techTypescript from '../assets/tech-typescript.svg';
+import chevronRight from '../assets/about/chevron-right.svg';
 import SectionScrollHint from '../components/SectionScrollHint';
 import SelectionPhysicsComponent from '../components/SelectionPhysicsComponent';
 import Switch from '../components/Switch';
@@ -36,20 +34,18 @@ const ABOUT_SWITCH_TRACK = {
   on: 'rgba(53, 129, 184, 0.48)',
 };
 
-const ABOUT_FAVORITE_PHOTOS = [
-  {
-    src: photo1,
-    alt: 'Road trip photo (DSCF0354)—friends on a roadtrip',
-  },
-  {
-    src: photo2,
-    alt: 'Road trip photo (DSCF0365)—scenic landscape',
-  },
-  {
-    src: photo3,
-    alt: 'Road trip photo (DSCF0740)—another favorite memory',
-  },
-];
+const photoModules = import.meta.glob('../assets/about/photography/*.webp', { eager: true });
+
+const ABOUT_FAVORITE_PHOTOS = Object.entries(photoModules)
+  .sort(([pathA], [pathB]) => pathA.localeCompare(pathB))
+  .map(([path, mod]) => {
+    const file = path.split('/').pop() ?? '';
+    const base = file.replace(/\.webp$/i, '');
+    return {
+      src: mod.default,
+      alt: `Photography (${base})`,
+    };
+  });
 
 function AboutPhotoScroller() {
   const scrollerRef = useRef(null);
@@ -79,38 +75,63 @@ function AboutPhotoScroller() {
     return () => window.clearInterval(id);
   }, []);
 
-  const handlePrev = () => {
-    const next =
-      (indexRef.current - 1 + ABOUT_FAVORITE_PHOTOS.length) % ABOUT_FAVORITE_PHOTOS.length;
+  const photoCount = ABOUT_FAVORITE_PHOTOS.length;
+  const goPrev = () => {
+    if (photoCount <= 1) return;
+    const next = (indexRef.current - 1 + photoCount) % photoCount;
     scrollToIndex(next);
   };
-
-  const handleNext = () => {
-    const next = (indexRef.current + 1) % ABOUT_FAVORITE_PHOTOS.length;
+  const goNext = () => {
+    if (photoCount <= 1) return;
+    const next = (indexRef.current + 1) % photoCount;
     scrollToIndex(next);
   };
 
   return (
-    <div
-      className="about-photo-scroller"
-      role="region"
-      aria-roledescription="carousel"
-      aria-label="Favorite photos"
-      ref={scrollerRef}
-    >
-      <div className="about-photo-scroller__track" ref={slidesRef}>
-        {ABOUT_FAVORITE_PHOTOS.map((photo) => (
-          <figure key={photo.src} className="about-photo-scroller__slide">
-            <img
-              src={photo.src}
-              alt={photo.alt}
-              loading="lazy"
-              decoding="async"
-              draggable={false}
-            />
-          </figure>
-        ))}
+    <div className="about-photo-scroller-wrap">
+      <div
+        className="about-photo-scroller"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Favorite photos"
+        ref={scrollerRef}
+      >
+        <div className="about-photo-scroller__track" ref={slidesRef}>
+          {ABOUT_FAVORITE_PHOTOS.map((photo, index) => (
+            <figure key={photo.src} className="about-photo-scroller__slide">
+              <img
+                src={photo.src}
+                alt={photo.alt}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                draggable={false}
+              />
+            </figure>
+          ))}
+        </div>
       </div>
+      {photoCount > 1 && (
+        <>
+          <button
+            type="button"
+            className="about-photo-scroller__nav about-photo-scroller__nav--prev"
+            aria-label="Previous photo"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={goPrev}
+          >
+            <img src={chevronRight} alt="" width={18} height={18} draggable={false} />
+          </button>
+          <button
+            type="button"
+            className="about-photo-scroller__nav about-photo-scroller__nav--next"
+            aria-label="Next photo"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={goNext}
+          >
+            <img src={chevronRight} alt="" width={18} height={18} draggable={false} />
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -233,8 +254,15 @@ export default function About() {
             duration={400}
             trackColors={ABOUT_SWITCH_TRACK}
           />
-          <p id={labelId} style={{marginTop: '0.5rem'}} className="about-intro-toggle__label">
-            {introType ? 'Aside from coding…' : 'A little about me...'}
+          <p
+            id={labelId}
+            style={{
+              marginTop: '0.5rem',
+              ...(introType ? { color: '#f5d259' } : {}),
+            }}
+            className="about-intro-toggle__label"
+          >
+            Hi I'm Button
           </p>
         </div>
       </div>

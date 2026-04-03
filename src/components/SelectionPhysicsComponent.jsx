@@ -27,7 +27,7 @@ function isTypingTarget(target) {
 
 const PHYSICS_HINT_ASIDE = (
   <>
-    Try to build me!
+    Try to stack the blocks <br/> and build a <span style={{ color: '#f5d259' }}>pyramid!</span>
     <br />
     {`Press 'a' and 'd' to rotate.`}
   </>
@@ -35,9 +35,8 @@ const PHYSICS_HINT_ASIDE = (
 
 const PHYSICS_HINT_ABOUT = (
   <>
-    Feel free to mess around!
-    <br />
-    Click on that button on the top right.
+    Click on that <span style={{ color: '#f5d259' }}>button</span> in the top right corner.
+
     <br />
     I know you want to :)
   </>
@@ -275,7 +274,10 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
     <div className="selection-physics-component">
       <div className="selection-physics-component__frame">
         <p className="selection-physics-component__hint">
-          {variant === 'about' ? PHYSICS_HINT_ABOUT : PHYSICS_HINT_ASIDE}
+          {/* Single inner wrapper so flex on <p> doesn’t treat each text/span as a row flex item */}
+          <span className="selection-physics-component__hint-inner">
+            {variant === 'about' ? PHYSICS_HINT_ABOUT : PHYSICS_HINT_ASIDE}
+          </span>
         </p>
         <div ref={mountRef} className="selection-physics-component__mount" />
       </div>

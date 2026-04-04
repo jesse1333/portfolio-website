@@ -56,6 +56,7 @@ const ABOUT_SWITCH_TRACK = {
 };
 
 const AboutPhotoGallery = lazy(() => import('../components/AboutPhotoGallery.jsx'));
+const MemoriesPhotoGallery = lazy(() => import('../components/MemoriesPhotoGallery.jsx'));
 
 const TECH_STACK = [
   { id: 'react', name: 'React', icon: techReact },
@@ -108,6 +109,16 @@ function PersonalIntroContent({ stackLevel }) {
           Lastly, my friends and family define who I am. Here are some of my favorite memories that I
           got to make from the past few years:
         </p>
+        <Suspense
+          fallback={
+            <div
+              className="memories-photo-album-wrap memories-photo-album-wrap--pending memories-photo-album-scroll"
+              aria-hidden="true"
+            />
+          }
+        >
+          <MemoriesPhotoGallery />
+        </Suspense>
       </>
     );
   }
@@ -186,6 +197,7 @@ export default function About() {
   useEffect(() => {
     const runPrefetch = () => {
       void import('../components/AboutPhotoGallery.jsx');
+      void import('../components/MemoriesPhotoGallery.jsx');
     };
     if (typeof requestIdleCallback !== 'undefined') {
       const id = requestIdleCallback(runPrefetch, { timeout: 2500 });

@@ -11,9 +11,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "embla-carousel-react": "^8.6.0",
     "matter-js": "^0.20.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-image-gallery": "^2.1.2",
     "react-router-dom": "^6.30.3"
   },
   "devDependencies": {

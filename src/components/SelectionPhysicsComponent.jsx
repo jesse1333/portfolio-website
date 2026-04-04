@@ -69,6 +69,7 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
     const Mouse = Matter.Mouse;
     const MouseConstraint = Matter.MouseConstraint;
     const Common = Matter.Common;
+    const Collision = Matter.Collision;
 
     const engine = Engine.create();
 
@@ -113,12 +114,12 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
       }
       const yMin = WALL + 55;
       const yMax = floorY - 70;
+      const spawnH = yMax - yMin;
+      /* Largest piece (base) spawns higher on screen (smaller y) than mid/cap */
+      const baseYMax = yMin + spawnH * 0.38;
+      const othersYMin = yMin + spawnH * 0.42;
 
-      const scatterBody = (body) => {
-        Body.setPosition(body, {
-          x: Common.random(xMin, xMax),
-          y: Common.random(yMin, yMax),
-        });
+      const randomizeMotion = (body) => {
         Body.setAngle(body, Common.random(-Math.PI * 0.85, Math.PI * 0.85));
         Body.setVelocity(body, {
           x: Common.random(-1.8, 1.8),
@@ -127,20 +128,69 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
         Body.setAngularVelocity(body, Common.random(-0.12, 0.12));
       };
 
+      /**
+       * Try random positions until `body` does not overlap bodies already in `placed`.
+       * @param {[number, number]} [yBand] — vertical spawn range [lo, hi] in world y (down = +).
+       */
+      const placeWithoutOverlap = (body, xLo, xHi, placed, yBand = [yMin, yMax]) => {
+        const [yLo, yHi] = yBand;
+        const span = xMax - xMin;
+        const third = span / 3;
+        const maxAttempts = 55;
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          const useFullWidth = attempt > 38;
+          const lo = useFullWidth ? xMin : xLo;
+          const hi = useFullWidth ? xMax : xHi;
+          Body.setPosition(body, {
+            x: Common.random(lo, hi),
+            y: Common.random(yLo, yHi),
+          });
+          randomizeMotion(body);
+          const overlaps = placed.some((other) => Collision.collides(body, other) !== null);
+          if (!overlaps) return;
+        }
+        /* Last resort: stagger along x so wide pieces rarely share the same column */
+        const index = placed.length;
+        const cx = xMin + third * (index + 0.5);
+        Body.setPosition(body, {
+          x: Common.random(cx - third * 0.25, cx + third * 0.25),
+          y: Common.random(yLo, yHi),
+        });
+        randomizeMotion(body);
+        let brute = 0;
+        while (placed.some((other) => Collision.collides(body, other) !== null) && brute < 35) {
+          Body.setPosition(body, {
+            x: Common.random(xMin, xMax),
+            y: Common.random(yLo, yHi),
+          });
+          randomizeMotion(body);
+          brute += 1;
+        }
+      };
+
       const base = Bodies.trapezoid(0, 0, BASE_TRAP.width, BASE_TRAP.height, BASE_TRAP.slope, {
         render: { fillStyle: PYRAMID_COLORS[0] },
       });
-      scatterBody(base);
-
       const mid = Bodies.trapezoid(0, 0, MID_TRAP.width, MID_TRAP.height, MID_TRAP.slope, {
         render: { fillStyle: PYRAMID_COLORS[1] },
       });
-      scatterBody(mid);
-
       const cap = Bodies.polygon(0, 0, CAP_TRI.sides, CAP_TRI.radius, {
         render: { fillStyle: PYRAMID_COLORS[2] },
       });
-      scatterBody(cap);
+
+      const span = xMax - xMin;
+      const third = span / 3;
+      const zoneLeft = [xMin, xMin + third];
+      const zoneMid = [xMin + third, xMin + 2 * third];
+      const zoneRight = [xMin + 2 * third, xMax];
+
+      const placed = [];
+      placeWithoutOverlap(base, zoneLeft[0], zoneLeft[1], placed, [yMin, baseYMax]);
+      placed.push(base);
+      placeWithoutOverlap(mid, zoneMid[0], zoneMid[1], placed, [othersYMin, yMax]);
+      placed.push(mid);
+      placeWithoutOverlap(cap, zoneRight[0], zoneRight[1], placed, [othersYMin, yMax]);
+      placed.push(cap);
 
       pieces = [base, mid, cap];
 

@@ -676,7 +676,7 @@ button.pfp-wrap:focus-visible {
   justify-content: space-between;
   gap: 1rem 1.5rem;
   margin-bottom: 1.25rem;
-  margin-top: 3rem;
+  margin-top: 1rem;
 }
 
 .about-heading {
@@ -861,6 +861,142 @@ button.pfp-wrap:focus-visible {
   }
 }
 
+/* Spotify iframe — oEmbed-style width cap; wide variant fills row (compact bar). */
+.spotify-embed {
+  display: block;
+  width: 100%;
+  max-width: min(100%, 456px);
+  border: none;
+}
+
+.spotify-embed--wide {
+  max-width: none;
+}
+
+/* Embla carousel (shadcn-style layout, project CSS) */
+.carousel-root {
+  position: relative;
+  outline: none;
+}
+
+.carousel-root:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 3px;
+}
+
+.carousel-root__viewport {
+  overflow: hidden;
+}
+
+.carousel-root__track {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+
+.carousel-root__track--horizontal {
+  margin-left: -1rem;
+}
+
+.carousel-root__track--vertical {
+  margin-top: -1rem;
+  flex-direction: column;
+}
+
+.carousel-root__item {
+  min-width: 0;
+  flex-shrink: 0;
+  flex-grow: 0;
+  flex-basis: 100%;
+}
+
+.carousel-root__item--horizontal {
+  padding-left: 1rem;
+}
+
+.carousel-root__item--vertical {
+  padding-top: 1rem;
+}
+
+.carousel-root__btn {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(241, 245, 249, 0.22);
+  background: rgba(20, 21, 31, 0.88);
+  color: rgba(241, 245, 249, 0.92);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: opacity 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.carousel-root__btn:hover:not(:disabled) {
+  border-color: rgba(241, 245, 249, 0.38);
+  background: rgba(30, 32, 44, 0.95);
+}
+
+.carousel-root__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.carousel-root__btn:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
+}
+
+.carousel-root__btn--prev-h {
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.carousel-root__btn--next-h {
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.carousel-root__btn--prev-v {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(90deg);
+}
+
+.carousel-root__btn--next-v {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(90deg);
+}
+
+.carousel-root__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.spotify-carousel {
+  width: 100%;
+  max-width: min(100%, 560px);
+  margin-top: 0.5rem;
+  padding: 0 2.85rem;
+}
+
+.spotify-carousel .spotify-embed {
+  max-width: 100%;
+}
+
 .about-copy .about-lead {
   font-size: 1.1rem;
   line-height: 1.6;
@@ -874,7 +1010,8 @@ button.pfp-wrap:focus-visible {
   opacity: 0.88;
 }
 
-.about-photo-scroller-wrap {
+.about-photo-gallery-wrap {
+  --ig-primary-color: var(--link-color);
   position: relative;
   width: 100%;
   max-width: min(100%, 33rem);
@@ -883,136 +1020,70 @@ button.pfp-wrap:focus-visible {
   overflow: hidden;
 }
 
-.about-photo-scroller {
-  position: relative;
-  container-type: inline-size;
-  container-name: about-photo;
-  width: 100%;
-  border-radius: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  outline: none;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+.about-photo-gallery-wrap--pending {
+  min-height: min(22rem, 70vh);
+  margin: 1.25rem 1rem 1.1rem;
+  background: rgba(241, 245, 249, 0.06);
+  animation: about-gallery-pending-pulse 1.1s ease-in-out infinite;
 }
 
-.about-photo-scroller::-webkit-scrollbar {
-  display: none;
-}
-
-.about-photo-scroller:focus-visible {
-  outline: 2px solid var(--link-color);
-  outline-offset: 3px;
-}
-
-.about-photo-scroller__nav {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.35rem;
-  min-width: 1.25rem;
-  padding: 0;
-  margin: 0;
-  border: none;
-  cursor: pointer;
-  color: #fff;
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.28) 0%,
-    rgba(0, 0, 0, 0.04) 100%
-  );
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.22s ease;
-}
-
-.about-photo-scroller__nav--prev {
-  left: 0;
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.28) 0%,
-    rgba(0, 0, 0, 0.04) 100%
-  );
-}
-
-.about-photo-scroller__nav--next {
-  right: 0;
-  background: linear-gradient(
-    to left,
-    rgba(0, 0, 0, 0.28) 0%,
-    rgba(0, 0, 0, 0.04) 100%
-  );
-}
-
-.about-photo-scroller__nav img {
-  display: block;
-  width: 18px;
-  height: 18px;
-  filter: brightness(0) invert(1);
-  pointer-events: none;
-}
-
-.about-photo-scroller__nav--prev img {
-  transform: scaleX(-1);
-}
-
-.about-photo-scroller-wrap:hover .about-photo-scroller__nav,
-.about-photo-scroller-wrap:focus-within .about-photo-scroller__nav {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-@media (hover: none) {
-  .about-photo-scroller__nav {
-    opacity: 1;
-    pointer-events: auto;
+@keyframes about-gallery-pending-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.9;
   }
 }
 
-.about-photo-scroller__nav:focus-visible {
-  opacity: 1;
-  pointer-events: auto;
-  outline: 2px solid var(--link-color);
-  outline-offset: -2px;
+.about-photo-gallery-wrap .image-gallery {
+  background: transparent;
 }
 
-.about-photo-scroller__track {
-  display: flex;
-  gap: 0;
-}
-
-.about-photo-scroller__slide {
-  flex: 0 0 100cqi;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-}
-
-@supports not (width: 1cqi) {
-  .about-photo-scroller__slide {
-    flex: 0 0 100%;
-  }
-}
-
-.about-photo-scroller__slide img {
-  display: block;
+.about-photo-gallery-wrap .image-gallery-content .image-gallery-slide .image-gallery-image {
+  max-height: min(70vh, 22rem);
   width: 100%;
-  height: auto;
-  aspect-ratio: 1600 / 1067;
   object-fit: cover;
   border-radius: 12px;
-  vertical-align: middle;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.about-photo-gallery-wrap .image-gallery.fullscreen-modal {
+  z-index: 100;
+}
+
+.about-photo-gallery-wrap .image-gallery.fullscreen-modal .image-gallery-content .image-gallery-slide .image-gallery-image {
+  max-height: calc(100vh - 80px);
+  object-fit: contain;
+  border-radius: 0;
+}
+
+.about-photo-gallery-wrap .image-gallery.fullscreen-modal .image-gallery-slide-wrapper {
+  border-radius: 0;
+}
+
+.about-photo-gallery-wrap .image-gallery-slide-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.about-photo-gallery-wrap .image-gallery-thumbnails-wrapper {
+  margin-top: 0.5rem;
+}
+
+.about-photo-gallery-wrap .image-gallery-thumbnail {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.about-photo-gallery-wrap .image-gallery-thumbnail .image-gallery-thumbnail-inner {
+  border-radius: 4px;
+}
+
+.about-photo-gallery-wrap .image-gallery-thumbnail img {
+  object-fit: cover;
 }
 
 

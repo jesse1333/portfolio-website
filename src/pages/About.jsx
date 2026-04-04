@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useId, useState, useTransition } from 'react';
 import uscVillage from '../assets/usc-village.png';
 import techAws from '../assets/tech-aws.svg';
 import techC from '../assets/tech-c.svg';
@@ -7,10 +7,31 @@ import techPostgresql from '../assets/tech-postgresql.svg';
 import techPython from '../assets/tech-python.svg';
 import techReact from '../assets/tech-react.svg';
 import techTypescript from '../assets/tech-typescript.svg';
-import chevronRight from '../assets/about/chevron-right.svg';
 import SectionScrollHint from '../components/SectionScrollHint';
 import SelectionPhysicsComponent from '../components/SelectionPhysicsComponent';
 import Switch from '../components/Switch';
+import SpotifyEmbed from '../components/SpotifyEmbed';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '../components/Carousel';
+
+const SPOTIFY_FAVORITE_TRACKS = [
+  'https://open.spotify.com/track/3hEfpBHxgieRLz4t3kLNEg?si=31d81f469656486e',
+  'https://open.spotify.com/track/1sTtlEZeVeeEnxEztJNkYN?si=63b554c4f215484e',
+  'https://open.spotify.com/track/2JN3ugW1cEahbYw0I5mw5U?si=54defafa35ec4556',
+  'https://open.spotify.com/track/5MMLS3xm12D7N26xlfFApr?si=b982714081504b51',
+  'https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr?si=375c798164fd469c',
+  'https://open.spotify.com/track/38o5lj4mbLK34vQkJUlMrg?si=83793ab381134a45',
+  'https://open.spotify.com/track/6fNQDsCq6LWfwTZnXl2Xsg?si=413adeaa79494ddc',
+  'https://open.spotify.com/track/3pTHZHX0MRE7xYeiTEWlaM?si=1fdb945830524750',
+  'https://open.spotify.com/track/7EsjkelQuoUlJXEw7SeVV4?si=3fbe494bd9774ae8',
+  'https://open.spotify.com/track/7eJMfftS33KTjuF7lTsMCx?si=2dc9fbbec92746f4',
+  'https://open.spotify.com/track/4C4zy9kfjYjr6IcNAdV7ZD?si=9f97bee6bf6b4908'
+];
 
 function AboutUscLink() {
   return (
@@ -34,107 +55,7 @@ const ABOUT_SWITCH_TRACK = {
   on: 'rgba(53, 129, 184, 0.48)',
 };
 
-const photoModules = import.meta.glob('../assets/about/photography/*.webp', { eager: true });
-
-const ABOUT_FAVORITE_PHOTOS = Object.entries(photoModules)
-  .sort(([pathA], [pathB]) => pathA.localeCompare(pathB))
-  .map(([path, mod]) => {
-    const file = path.split('/').pop() ?? '';
-    const base = file.replace(/\.webp$/i, '');
-    return {
-      src: mod.default,
-      alt: `Photography (${base})`,
-    };
-  });
-
-function AboutPhotoScroller() {
-  const scrollerRef = useRef(null);
-  const slidesRef = useRef(null);
-  const indexRef = useRef(0);
-
-  const scrollToIndex = (nextIndex, behavior = 'smooth') => {
-    const scroller = scrollerRef.current;
-    const track = slidesRef.current;
-    if (!scroller || !track) return;
-    const slide = track.children[nextIndex];
-    if (!slide) return;
-    const slideWidth = slide.getBoundingClientRect().width || scroller.clientWidth;
-    scroller.scrollTo({
-      left: slideWidth * nextIndex,
-      behavior,
-    });
-    indexRef.current = nextIndex;
-  };
-
-  useEffect(() => {
-    if (ABOUT_FAVORITE_PHOTOS.length <= 1) return undefined;
-    const id = window.setInterval(() => {
-      const next = (indexRef.current + 1) % ABOUT_FAVORITE_PHOTOS.length;
-      scrollToIndex(next);
-    }, 7000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const photoCount = ABOUT_FAVORITE_PHOTOS.length;
-  const goPrev = () => {
-    if (photoCount <= 1) return;
-    const next = (indexRef.current - 1 + photoCount) % photoCount;
-    scrollToIndex(next);
-  };
-  const goNext = () => {
-    if (photoCount <= 1) return;
-    const next = (indexRef.current + 1) % photoCount;
-    scrollToIndex(next);
-  };
-
-  return (
-    <div className="about-photo-scroller-wrap">
-      <div
-        className="about-photo-scroller"
-        role="region"
-        aria-roledescription="carousel"
-        aria-label="Favorite photos"
-        ref={scrollerRef}
-      >
-        <div className="about-photo-scroller__track" ref={slidesRef}>
-          {ABOUT_FAVORITE_PHOTOS.map((photo, index) => (
-            <figure key={photo.src} className="about-photo-scroller__slide">
-              <img
-                src={photo.src}
-                alt={photo.alt}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                decoding="async"
-                draggable={false}
-              />
-            </figure>
-          ))}
-        </div>
-      </div>
-      {photoCount > 1 && (
-        <>
-          <button
-            type="button"
-            className="about-photo-scroller__nav about-photo-scroller__nav--prev"
-            aria-label="Previous photo"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={goPrev}
-          >
-            <img src={chevronRight} alt="" width={18} height={18} draggable={false} />
-          </button>
-          <button
-            type="button"
-            className="about-photo-scroller__nav about-photo-scroller__nav--next"
-            aria-label="Next photo"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={goNext}
-          >
-            <img src={chevronRight} alt="" width={18} height={18} draggable={false} />
-          </button>
-        </>
-      )}
-    </div>
-  );
-}
+const AboutPhotoGallery = lazy(() => import('../components/AboutPhotoGallery.jsx'));
 
 const TECH_STACK = [
   { id: 'react', name: 'React', icon: techReact },
@@ -152,10 +73,31 @@ function PersonalIntroContent({ stackLevel }) {
     return (
       <>
         <p className="about-lead">
-          I&apos;m also a huge fan of music, playing piano/guitar and writing songs. I&apos;m a little
-          too shy to show off some songs I wrote, but...
+          I&apos;m also a huge fan of music. I grew up playing piano and violin and also taught myself guitar. I love singing and jamming in my free time! 
+
+          <br />
+          <br />
+          Here are some of my favorite songs from some of my favorite artists:
+
+
         </p>
-        <p className="about-body">Add stuff about music here...</p>
+
+        <Carousel
+          className="spotify-carousel"
+          opts={{ align: 'start', loop: false }}
+          autoPlayInterval={7000}
+        >
+          <CarouselContent>
+            {SPOTIFY_FAVORITE_TRACKS.map((link) => (
+              <CarouselItem key={link}>
+                <SpotifyEmbed link={link} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious aria-label="Previous track" />
+          <CarouselNext aria-label="Next track" />
+        </Carousel>
+
       </>
     );
   }
@@ -175,7 +117,16 @@ function PersonalIntroContent({ stackLevel }) {
         I also got into photography recently. I have an Fujifilm X-T5 that I always pullout whenever I
         go on roadtrips with my friends. Here are some of my favorites:
       </p>
-      <AboutPhotoScroller />
+      <Suspense
+        fallback={
+          <div
+            className="about-photo-gallery-wrap about-photo-gallery-wrap--pending"
+            aria-hidden="true"
+          />
+        }
+      >
+        <AboutPhotoGallery />
+      </Suspense>
       <br />
     </>
   );
@@ -228,8 +179,21 @@ const technicalIntro = (
 export default function About() {
   const [introType, setIntroType] = useState(true);
   const [stackLevel, setStackLevel] = useState(0);
+  const [, startIntroTransition] = useTransition();
   const switchId = useId();
   const labelId = `${switchId}-label`;
+
+  useEffect(() => {
+    const runPrefetch = () => {
+      void import('../components/AboutPhotoGallery.jsx');
+    };
+    if (typeof requestIdleCallback !== 'undefined') {
+      const id = requestIdleCallback(runPrefetch, { timeout: 2500 });
+      return () => cancelIdleCallback(id);
+    }
+    const t = window.setTimeout(runPrefetch, 400);
+    return () => window.clearTimeout(t);
+  }, []);
 
   return (
     <section
@@ -250,7 +214,11 @@ export default function About() {
             id={switchId}
             aria-labelledby={labelId}
             value={!introType}
-            onPress={() => setIntroType((v) => !v)}
+            onPress={() =>
+              startIntroTransition(() => {
+                setIntroType((v) => !v);
+              })
+            }
             duration={400}
             trackColors={ABOUT_SWITCH_TRACK}
           />

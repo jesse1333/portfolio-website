@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RowsPhotoAlbum } from 'react-photo-album';
-import InfiniteScroll from 'react-photo-album/scroll';
 import 'react-photo-album/rows.css';
 
-const CHUNK_SIZE = 8;
+/** Used when natural size cannot be read so the row layout still includes the image. */
+const FALLBACK_ASPECT = { width: 4, height: 3 };
 
-const photoModules = import.meta.glob('../assets/about/memories/*.{webp,jpg,jpeg,png}', {
-  eager: true,
-});
+const photoModules = import.meta.glob(
+  '../assets/about/memories/**/*.{webp,WEBP,jpg,JPG,jpeg,JPEG,png,PNG}',
+  { eager: true }
+);
 
 function readDimensions(src) {
   return new Promise((resolve) => {
@@ -20,8 +21,6 @@ function readDimensions(src) {
 }
 
 export default function MemoriesPhotoGallery() {
-  const scrollRef = useRef(null);
-
   const entries = useMemo(
     () =>
       Object.entries(photoModules)
@@ -49,12 +48,12 @@ export default function MemoriesPhotoGallery() {
       const results = await Promise.all(
         entries.map(async ({ src, alt }) => {
           const dims = await readDimensions(src);
-          if (!dims) return null;
-          return { src, width: dims.width, height: dims.height, alt };
+          const { width, height } = dims ?? FALLBACK_ASPECT;
+          return { src, width, height, alt };
         })
       );
       if (cancelled) return;
-      setAllPhotos(results.filter(Boolean));
+      setAllPhotos(results);
       setResolved(true);
     })();
 
@@ -62,24 +61,6 @@ export default function MemoriesPhotoGallery() {
       cancelled = true;
     };
   }, [entries]);
-
-  const initialBatch = useMemo(() => {
-    if (allPhotos.length === 0) return undefined;
-    return allPhotos.slice(0, CHUNK_SIZE);
-  }, [allPhotos]);
-
-  const fetchMore = useCallback(
-    async (batchCount) => {
-      const start = batchCount * CHUNK_SIZE;
-      const batch = allPhotos.slice(start, start + CHUNK_SIZE);
-      if (batch.length === 0) return null;
-      await Promise.resolve();
-      return batch;
-    },
-    [allPhotos]
-  );
-
-  const scrollContainer = useCallback(() => scrollRef.current, []);
 
   if (entries.length === 0) return null;
 
@@ -96,40 +77,27 @@ export default function MemoriesPhotoGallery() {
 
   return (
     <div
-      ref={scrollRef}
       className="memories-photo-album-wrap memories-photo-album-scroll"
       role="region"
       aria-label="Memory photos"
     >
-      <InfiniteScroll
-        photos={initialBatch}
-        fetch={fetchMore}
-        scrollContainer={scrollContainer}
-        fetchRootMargin="240px"
-        loading={
-          <p className="memories-infinite-scroll-status" role="status">
-            Loading more…
-          </p>
+      <RowsPhotoAlbum
+        photos={allPhotos}
+        padding={0}
+        spacing={16}
+        targetRowHeight={(w) =>
+          w < 420 ? w / 1.85 : w < 640 ? w / 2.15 : w / 2.35
         }
-      >
-        <RowsPhotoAlbum
-          photos={[]}
-          padding={0}
-          spacing={16}
-          targetRowHeight={(w) =>
-            w < 420 ? w / 1.85 : w < 640 ? w / 2.15 : w / 2.35
-          }
-          sizes={{
-            size: 'min(42rem, 100% - 2rem)',
-            sizes: [
-              {
-                viewport: '(max-width: 960px)',
-                size: 'calc(100vw - 48px)',
-              },
-            ],
-          }}
-        />
-      </InfiniteScroll>
+        sizes={{
+          size: 'min(42rem, 100% - 2rem)',
+          sizes: [
+            {
+              viewport: '(max-width: 960px)',
+              size: 'calc(100vw - 48px)',
+            },
+          ],
+        }}
+      />
     </div>
   );
 }

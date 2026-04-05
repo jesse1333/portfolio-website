@@ -80,6 +80,23 @@ const TECH_STACK = [
 
 /** Personal “Aside from coding” — driven by pyramid stackLevel: 0 photos, 1 music, 2 family. */
 function PersonalIntroContent({ stackLevel }) {
+  const [spotifyPlayingByTrack, setSpotifyPlayingByTrack] = useState({});
+
+  const setTrackPlayback = useCallback((trackLink, playing) => {
+    setSpotifyPlayingByTrack((prev) => {
+      if (playing) {
+        if (prev[trackLink]) return prev;
+        return { ...prev, [trackLink]: true };
+      }
+      if (!(trackLink in prev)) return prev;
+      const next = { ...prev };
+      delete next[trackLink];
+      return next;
+    });
+  }, []);
+
+  const spotifyCarouselAutoMs = Object.values(spotifyPlayingByTrack).some(Boolean) ? null : 7000;
+
   if (stackLevel === 1) {
     return (
       <>
@@ -96,12 +113,15 @@ function PersonalIntroContent({ stackLevel }) {
         <Carousel
           className="spotify-carousel"
           opts={{ align: 'start', loop: false }}
-          autoPlayInterval={7000}
+          autoPlayInterval={spotifyCarouselAutoMs}
         >
           <CarouselContent>
             {SPOTIFY_FAVORITE_TRACKS.map((link) => (
               <CarouselItem key={link}>
-                <SpotifyEmbed link={link} />
+                <SpotifyEmbed
+                  link={link}
+                  onPlaybackActiveChange={(playing) => setTrackPlayback(link, playing)}
+                />
               </CarouselItem>
             ))}
           </CarouselContent>

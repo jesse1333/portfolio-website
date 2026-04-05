@@ -873,6 +873,13 @@ button.pfp-wrap:focus-visible {
   max-width: none;
 }
 
+.spotify-embed iframe {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  border: 0;
+}
+
 /* Embla carousel (shadcn-style layout, project CSS) */
 .carousel-root {
   position: relative;

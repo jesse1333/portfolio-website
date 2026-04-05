@@ -1157,6 +1157,20 @@ button.pfp-wrap:focus-visible {
   opacity: 0.65;
 }
 
+/* One-shot pyramid complete — full-viewport canvas, no pointer capture */
+.pyramid-fireworks-root {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  pointer-events: none;
+}
+
+.pyramid-fireworks-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 
 .about-tech-label {
   font-size: 0.85rem;

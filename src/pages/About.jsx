@@ -1,4 +1,13 @@
-import { lazy, Suspense, useEffect, useId, useState, useTransition } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useTransition,
+} from 'react';
 import uscVillage from '../assets/usc-village.png';
 import techAws from '../assets/tech-aws.svg';
 import techC from '../assets/tech-c.svg';
@@ -8,6 +17,7 @@ import techPython from '../assets/tech-python.svg';
 import techReact from '../assets/tech-react.svg';
 import techTypescript from '../assets/tech-typescript.svg';
 import SectionScrollHint from '../components/SectionScrollHint';
+import PyramidFireworksCelebration from '../components/PyramidFireworksCelebration';
 import SelectionPhysicsComponent from '../components/SelectionPhysicsComponent';
 import Switch from '../components/Switch';
 import SpotifyEmbed from '../components/SpotifyEmbed';
@@ -190,9 +200,31 @@ const technicalIntro = (
 export default function About() {
   const [introType, setIntroType] = useState(true);
   const [stackLevel, setStackLevel] = useState(0);
+  const [pyramidCelebration, setPyramidCelebration] = useState(false);
+  /** Once true for this page load, pyramid fireworks will not run again until refresh. */
+  const visitedMemories = useRef(false);
   const [, startIntroTransition] = useTransition();
   const switchId = useId();
   const labelId = `${switchId}-label`;
+
+  const endPyramidCelebration = useCallback(() => {
+    setPyramidCelebration(false);
+  }, []);
+
+  useEffect(() => {
+    if (introType || stackLevel < 2) return;
+    if (visitedMemories.current) return;
+
+    visitedMemories.current = true;
+
+    const reduced =
+      typeof globalThis.matchMedia === 'function' &&
+      globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduced) return;
+
+    setPyramidCelebration(true);
+  }, [introType, stackLevel]);
 
   useEffect(() => {
     const runPrefetch = () => {
@@ -269,6 +301,10 @@ export default function About() {
         label="Featured Work"
         ariaLabel="Scroll to Featured Work"
       />
+
+      {pyramidCelebration ? (
+        <PyramidFireworksCelebration onFinished={endPyramidCelebration} />
+      ) : null}
     </section>
   );
 }

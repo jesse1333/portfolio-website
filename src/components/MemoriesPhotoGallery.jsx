@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { RowsPhotoAlbum } from 'react-photo-album';
+import { memoriesModuleMap } from '../lib/aboutImageAssets.js';
 import 'react-photo-album/rows.css';
 
 /** Used when natural size cannot be read so the row layout still includes the image. */
 const FALLBACK_ASPECT = { width: 4, height: 3 };
 
-const photoModules = import.meta.glob(
-  '../assets/about/memories/**/*.{webp,WEBP,jpg,JPG,jpeg,JPEG,png,PNG}',
-  { eager: true }
-);
+const photoModules = memoriesModuleMap;
 
 function readDimensions(src) {
   return new Promise((resolve) => {

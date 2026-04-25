@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import Matter from 'matter-js';
 import { computePyramidStackLevel } from '../matter/pyramidDetection';
 
-const BASE_H = 470;
+const BASE_H_DESKTOP = 470;
+const BASE_H_MOBILE = 360;
 const WALL = 50;
 const obstaclePalette = ['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1'];
 /** Base → middle → cap (triangle). */
@@ -27,15 +28,15 @@ function isTypingTarget(target) {
 
 const PHYSICS_HINT_ASIDE = (
   <>
-    Try to stack the blocks <br/> and build a <span style={{ color: '#f5d259' }}>pyramid!</span>
-    <br />
+    Try to build a <span style={{ color: '#f5d259' }}>pyramid!</span>
+
     {`Press 'a' and 'd' to rotate.`}
   </>
 );
 
 const PHYSICS_HINT_ABOUT = (
   <>
-    Click on that <span style={{ color: '#f5d259' }}>button</span> in the top right corner.
+    Click on that button in the corner.
 
     <br />
     I know you want to :)
@@ -59,6 +60,9 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
     const mount = mountRef.current;
     if (!mount) return undefined;
 
+    const isMobileViewport = window.matchMedia('(max-width: 640px)').matches;
+    const sceneHeight = isMobileViewport ? BASE_H_MOBILE : BASE_H_DESKTOP;
+
     const Engine = Matter.Engine;
     const Render = Matter.Render;
     const Runner = Matter.Runner;
@@ -69,11 +73,10 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
     const Mouse = Matter.Mouse;
     const MouseConstraint = Matter.MouseConstraint;
     const Common = Matter.Common;
-    const Collision = Matter.Collision;
 
     const engine = Engine.create();
 
-    const BASE_W = 460;
+    const BASE_W = isMobileViewport ? 340 : 460;
     const dims = { w: BASE_W };
 
     const render = Render.create({
@@ -81,7 +84,7 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
       engine,
       options: {
         width: BASE_W,
-        height: BASE_H,
+        height: sceneHeight,
         wireframes: false,
         showAngleIndicator: true,
         background: 'transparent',
@@ -102,7 +105,7 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
       }
       walls = [];
 
-      const floorY = BASE_H - WALL / 2;
+      const floorY = sceneHeight - WALL / 2;
       const innerW = w - 2 * WALL;
       const padX = Math.min(100, Math.max(24, innerW * 0.18));
       let xMin = WALL + padX;
@@ -114,12 +117,12 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
       }
       const yMin = WALL + 55;
       const yMax = floorY - 70;
-      const spawnH = yMax - yMin;
-      /* Largest piece (base) spawns higher on screen (smaller y) than mid/cap */
-      const baseYMax = yMin + spawnH * 0.38;
-      const othersYMin = yMin + spawnH * 0.42;
 
-      const randomizeMotion = (body) => {
+      const scatterBody = (body) => {
+        Body.setPosition(body, {
+          x: Common.random(xMin, xMax),
+          y: Common.random(yMin, yMax),
+        });
         Body.setAngle(body, Common.random(-Math.PI * 0.85, Math.PI * 0.85));
         Body.setVelocity(body, {
           x: Common.random(-1.8, 1.8),
@@ -128,76 +131,27 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
         Body.setAngularVelocity(body, Common.random(-0.12, 0.12));
       };
 
-      /**
-       * Try random positions until `body` does not overlap bodies already in `placed`.
-       * @param {[number, number]} [yBand] — vertical spawn range [lo, hi] in world y (down = +).
-       */
-      const placeWithoutOverlap = (body, xLo, xHi, placed, yBand = [yMin, yMax]) => {
-        const [yLo, yHi] = yBand;
-        const span = xMax - xMin;
-        const third = span / 3;
-        const maxAttempts = 55;
-        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-          const useFullWidth = attempt > 38;
-          const lo = useFullWidth ? xMin : xLo;
-          const hi = useFullWidth ? xMax : xHi;
-          Body.setPosition(body, {
-            x: Common.random(lo, hi),
-            y: Common.random(yLo, yHi),
-          });
-          randomizeMotion(body);
-          const overlaps = placed.some((other) => Collision.collides(body, other) !== null);
-          if (!overlaps) return;
-        }
-        /* Last resort: stagger along x so wide pieces rarely share the same column */
-        const index = placed.length;
-        const cx = xMin + third * (index + 0.5);
-        Body.setPosition(body, {
-          x: Common.random(cx - third * 0.25, cx + third * 0.25),
-          y: Common.random(yLo, yHi),
-        });
-        randomizeMotion(body);
-        let brute = 0;
-        while (placed.some((other) => Collision.collides(body, other) !== null) && brute < 35) {
-          Body.setPosition(body, {
-            x: Common.random(xMin, xMax),
-            y: Common.random(yLo, yHi),
-          });
-          randomizeMotion(body);
-          brute += 1;
-        }
-      };
-
       const base = Bodies.trapezoid(0, 0, BASE_TRAP.width, BASE_TRAP.height, BASE_TRAP.slope, {
         render: { fillStyle: PYRAMID_COLORS[0] },
       });
+      scatterBody(base);
+
       const mid = Bodies.trapezoid(0, 0, MID_TRAP.width, MID_TRAP.height, MID_TRAP.slope, {
         render: { fillStyle: PYRAMID_COLORS[1] },
       });
+      scatterBody(mid);
+
       const cap = Bodies.polygon(0, 0, CAP_TRI.sides, CAP_TRI.radius, {
         render: { fillStyle: PYRAMID_COLORS[2] },
       });
-
-      const span = xMax - xMin;
-      const third = span / 3;
-      const zoneLeft = [xMin, xMin + third];
-      const zoneMid = [xMin + third, xMin + 2 * third];
-      const zoneRight = [xMin + 2 * third, xMax];
-
-      const placed = [];
-      placeWithoutOverlap(base, zoneLeft[0], zoneLeft[1], placed, [yMin, baseYMax]);
-      placed.push(base);
-      placeWithoutOverlap(mid, zoneMid[0], zoneMid[1], placed, [othersYMin, yMax]);
-      placed.push(mid);
-      placeWithoutOverlap(cap, zoneRight[0], zoneRight[1], placed, [othersYMin, yMax]);
-      placed.push(cap);
+      scatterBody(cap);
 
       pieces = [base, mid, cap];
 
       const top = Bodies.rectangle(w / 2, 0, w, WALL, { isStatic: true });
-      const bottom = Bodies.rectangle(w / 2, BASE_H, w, WALL, { isStatic: true });
-      const left = Bodies.rectangle(0, BASE_H / 2, WALL, BASE_H, { isStatic: true });
-      const right = Bodies.rectangle(w, BASE_H / 2, WALL, BASE_H, { isStatic: true });
+      const bottom = Bodies.rectangle(w / 2, sceneHeight, w, WALL, { isStatic: true });
+      const left = Bodies.rectangle(0, sceneHeight / 2, WALL, sceneHeight, { isStatic: true });
+      const right = Bodies.rectangle(w, sceneHeight / 2, WALL, sceneHeight, { isStatic: true });
       walls = [top, bottom, left, right];
 
       Composite.add(engine.world, [...pieces, ...walls]);
@@ -273,7 +227,7 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
 
     Matter.Render.lookAt(render, {
       min: { x: 0, y: 0 },
-      max: { x: BASE_W, y: BASE_H },
+      max: { x: BASE_W, y: sceneHeight },
     });
 
     const runner = Runner.create();
@@ -286,11 +240,11 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
       if (nw === dims.w) return;
 
       dims.w = nw;
-      Render.setSize(render, nw, BASE_H);
+      Render.setSize(render, nw, sceneHeight);
       buildScene(nw);
       Matter.Render.lookAt(render, {
         min: { x: 0, y: 0 },
-        max: { x: nw, y: BASE_H },
+        max: { x: nw, y: sceneHeight },
       });
     };
 
@@ -324,10 +278,7 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
     <div className="selection-physics-component">
       <div className="selection-physics-component__frame">
         <p className="selection-physics-component__hint">
-          {/* Single inner wrapper so flex on <p> doesn’t treat each text/span as a row flex item */}
-          <span className="selection-physics-component__hint-inner">
-            {variant === 'about' ? PHYSICS_HINT_ABOUT : PHYSICS_HINT_ASIDE}
-          </span>
+          {variant === 'about' ? PHYSICS_HINT_ABOUT : PHYSICS_HINT_ASIDE}
         </p>
         <div ref={mountRef} className="selection-physics-component__mount" />
       </div>

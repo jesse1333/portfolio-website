@@ -1,10 +1,9 @@
 import { useRef } from 'react';
 import ImageGallery from 'react-image-gallery';
+import { photographyModuleMap } from '../lib/aboutImageAssets.js';
 import 'react-image-gallery/styles/image-gallery.css';
 
-const photoModules = import.meta.glob('../assets/about/photography/*.webp', { eager: true });
-
-const ABOUT_FAVORITE_PHOTOS = Object.entries(photoModules)
+const ABOUT_FAVORITE_PHOTOS = Object.entries(photographyModuleMap)
   .sort(([pathA], [pathB]) => pathA.localeCompare(pathB))
   .map(([path, mod]) => {
     const file = path.split('/').pop() ?? '';

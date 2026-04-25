@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { loadSpotifyIframeApi } from '../lib/spotifyIframeApi.js';
 
 function linkToSpotifyUri(link) {
@@ -17,6 +17,7 @@ export default function SpotifyEmbed({
   link,
   style = {},
   wide = false,
+  eager = false,
   width = '100%',
   height = wide ? 80 : 352,
   frameBorder: _frameBorder = 0,
@@ -26,8 +27,10 @@ export default function SpotifyEmbed({
   ...rest
 }) {
   const uri = useMemo(() => linkToSpotifyUri(link), [link]);
+  const normalizedHeight = typeof height === 'number' ? `${height}px` : height;
   const mountRef = useRef(null);
   const onPlaybackRef = useRef(onPlaybackActiveChange);
+  const [shouldInitialize, setShouldInitialize] = useState(false);
   onPlaybackRef.current = onPlaybackActiveChange;
 
   const rootClass = ['spotify-embed', wide && 'spotify-embed--wide', className]
@@ -35,6 +38,36 @@ export default function SpotifyEmbed({
     .join(' ');
 
   useEffect(() => {
+    if (eager) {
+      setShouldInitialize(true);
+      return undefined;
+    }
+
+    const mountEl = mountRef.current;
+    if (!mountEl) return undefined;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setShouldInitialize(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry?.isIntersecting) return;
+        setShouldInitialize(true);
+        observer.disconnect();
+      },
+      { rootMargin: '240px 0px' }
+    );
+
+    observer.observe(mountEl);
+    return () => observer.disconnect();
+  }, [eager]);
+
+  useEffect(() => {
+    if (!shouldInitialize) return undefined;
+
     const mountEl = mountRef.current;
     if (!mountEl) return undefined;
 
@@ -75,13 +108,13 @@ export default function SpotifyEmbed({
       controller?.destroy();
       onPlaybackRef.current?.(false);
     };
-  }, [uri, width, height]);
+  }, [height, shouldInitialize, uri, width]);
 
   return (
     <div
       {...rest}
       className={rootClass}
-      style={{ borderRadius: 12, overflow: 'hidden', ...style }}
+      style={{ borderRadius: 12, overflow: 'hidden', minHeight: normalizedHeight, ...style }}
     >
       <div ref={mountRef} className="spotify-embed__mount" />
     </div>

@@ -28,8 +28,10 @@ function isTypingTarget(target) {
 
 const PHYSICS_HINT_ASIDE = (
   <>
-    Try to build a <span style={{ color: '#f5d259' }}>pyramid!</span>
-
+    <span style={{ whiteSpace: 'nowrap' }}>
+      Try to build a <span style={{ color: '#f5d259' }}>pyramid!</span>
+    </span>
+    <br />
     {`Press 'a' and 'd' to rotate.`}
   </>
 );
@@ -278,7 +280,9 @@ export default function SelectionPhysicsComponent({ variant = 'aside', onStackLe
     <div className="selection-physics-component">
       <div className="selection-physics-component__frame">
         <p className="selection-physics-component__hint">
-          {variant === 'about' ? PHYSICS_HINT_ABOUT : PHYSICS_HINT_ASIDE}
+          <span className="selection-physics-component__hint-inner">
+            {variant === 'about' ? PHYSICS_HINT_ABOUT : PHYSICS_HINT_ASIDE}
+          </span>
         </p>
         <div ref={mountRef} className="selection-physics-component__mount" />
       </div>

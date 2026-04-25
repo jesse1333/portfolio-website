@@ -585,6 +585,14 @@
     padding: 2rem 1.25rem;
   }
 
+  /* Put section scroll hint in normal flow on mobile to prevent overlap. */
+  .page-viewport-min--scroll-hint .home-scroll-hint-wrap {
+    position: static;
+    margin-top: 1.25rem;
+    margin-bottom: 0;
+    pointer-events: auto;
+  }
+
   .home-splash-content {
     flex-direction: column;
     text-align: center;
